@@ -34,14 +34,15 @@ class help implements \local_o365\bot\intents\intentinterface {
     /**
      * @var array to cache user permission status
      */
-    private $checkedpermissions = [];
 
-    private function check_permission($permission) {
-        if (!isset($this->checkedpermissions[$permission])) {
+
+    private static function check_permission($permission) {
+        static $checkedpermissions = [];
+        if (!isset($checkedpermissions[$permission])) {
             $systemcontext = \context_system::instance();
-            $this->checkedpermissions[$permission] = has_capability('local/o365:'.$permission, $systemcontext);
+            $checkedpermissions[$permission] = has_capability('local/o365:'.$permission, $systemcontext);
         }
-        return $this->checkedpermissions[$permission];
+        return $checkedpermissions[$permission];
     }
     /**
      * Gets a message with the welcome text and available questions.
@@ -50,7 +51,7 @@ class help implements \local_o365\bot\intents\intentinterface {
      * @param mixed $entities - Intent entities (optional and not used at the moment)
      * @return array|string - Bot message structure with data
      */
-    public function get_message($language, $entities = null) {
+    public static function get_message($language, $entities = null) {
         global $CFG;
         $listitems = [];
         $warnings = [];
@@ -58,7 +59,7 @@ class help implements \local_o365\bot\intents\intentinterface {
 
         $message = get_string_manager()->get_string('help_message', 'local_o365', null, $language);
         foreach ($entities as $intent) {
-            if ($this->check_permission($intent['permission'])) {
+            if (!empty($intent['permission']) && self::check_permission($intent['permission'])) {
                     $text = get_string_manager()->get_string($intent['text'], 'local_o365', null, $language);
                     $action = ($intent['clickable'] ? $text : null);
                     $actiontype = ($intent['clickable'] ? 'imBack' : null);

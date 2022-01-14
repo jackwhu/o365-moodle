@@ -196,17 +196,17 @@ class usersync extends scheduled_task {
         }
 
         if (main::sync_option_enabled('suspend') || main::sync_option_enabled('reenable')) {
-            $lastruntime = get_config('local_o365', 'task_usersync_lastdelete');
+            $lastrundate = get_config('local_o365', 'task_usersync_lastdelete');
             $rundelete = true;
-            if ($lastruntime === false) {
-                $lastruntime = strtotime('today midnight');
-                set_config('task_usersync_lastdelete', $lastruntime, 'local_o365');
+            if ($lastrundate === false) {
+                $lastrundate = strtotime('Ymd', strtotime('yesterday'));
+                set_config('task_usersync_lastdelete', $lastrundate, 'local_o365');
             } else {
-                if ($lastruntime + 24 * 60 * 60 > time()) {
+                if (date('Ymd') > $lastrundate) {
+                    set_config('task_usersync_lastdelete', date('Ymd'), 'local_o365');
+                } else {
                     $rundelete = false;
                     $this->mtrace('Suspend/delete users feature disabled because it was run less than 1 day ago.');
-                } else {
-                    set_config('task_usersync_lastdelete', time(), 'local_o365');
                 }
             }
             if ($rundelete) {

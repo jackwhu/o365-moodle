@@ -748,5 +748,19 @@ function xmldb_local_o365_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2020071507, 'local', 'o365');
     }
 
+    if ($oldversion < 2020071543) {
+        // Update "task_usersync_lastdelete" setting from timestamp to YYYYMMDD.
+        $lastusersuspendruntime = get_config('local_o365', 'task_usersync_lastdelete');
+        if (!$lastusersuspendruntime) {
+            $lastusersuspendruntime = date('Ymd', strtotime('yesterday'));
+        } else {
+            $lastusersuspendruntime = date('Ymd', $lastusersuspendruntime);
+        }
+        set_config('task_usersync_lastdelete', $lastusersuspendruntime, 'local_o365');
+
+        // O365 savepoint reached.
+        upgrade_plugin_savepoint(true, 2020071543, 'local', 'o365');
+    }
+
     return true;
 }
